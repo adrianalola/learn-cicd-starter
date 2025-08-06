@@ -14,8 +14,8 @@ func TestGetAPIKey_ValidHeader(t *testing.T) {
 		t.Fatalf("expected no error, got: %v", err)
 	}
 	if key != "testtoken123" {
-		t.Errorf("expected key to be 'testtoken123', got: %s", 
-key)
+		t.Errorf("expected key to be 'testtoken123', got: %s",
+			key)
 	}
 }
 
@@ -40,4 +40,3 @@ func TestGetAPIKey_MalformedHeader(t *testing.T) {
 		t.Fatal("expected error for malformed header, got nil")
 	}
 }
-
