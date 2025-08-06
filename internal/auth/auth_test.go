@@ -13,7 +13,7 @@ func TestGetAPIKey_ValidHeader(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
-	if key != "wrongvalueerror" {
+	if key != "testtoken123" {
 		t.Errorf("expected key to be 'testtoken123', got: %s", 
 key)
 	}
