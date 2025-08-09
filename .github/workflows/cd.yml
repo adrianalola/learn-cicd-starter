@@ -1,27 +1,46 @@
-name: CD
+name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  deploy:
+  Deploy:
+    name: CD
     runs-on: ubuntu-latest
 
+    #hace disponible el secret a los steps
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
+          go-version: '1.23.0'
 
+      - name: Make build script executable
+        run: chmod +x ./scripts/buildprod.sh
+
+      - name: Build app
+        run: ./scripts/buildprod.sh
+
+      #instala goose para el runner
+      - name: Install goose
+        run: go install github.com/pressly/goose/v3/cmd/goose@latest
+
+      #corre migraciones antess del deploy
+      - name: Run DB migrations
+        run: ./scripts/migrateup.sh
+
+      
+      #marcarlo como no-bloqueante con continue-on-error: true
       - name: Deploy to AWS App Runner
         run: |
-          aws apprunner start-deployment --service-arn 
-arn:aws:apprunner:eu-central-1:841162699538:service/notely-service/a20db856be2e46c8bba25499102b8731
-
+          aws apprunner start-deployment \
+            --service-arn arn:aws:apprunner:eu-central-1:841162699538:service/notely-service/a20db856be2e46c8bba25499102b8731 \
+            --region eu-central-1
+        continue-on-error: true   #si no hay credenciales en Actions
